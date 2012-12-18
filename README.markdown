@@ -1,116 +1,120 @@
-**Caution:** This bundles is developed in sync with [symfony's repository](https://github.com/symfony/symfony)
-
 Documentation
 -------------
 
-The documentation is not yet written.
+Yet another implementation of EvarioJanrainBundle
+Use at your own risc.
 
 About
 -----
 
-JanrainBundle integrates Janrain into Symfony2 projects. It is very much a work in progress.
+JanrainBundle integrates Janrain into Symfony2 projects.
 
-TODO
-----
+Requires FOSUserBundle and FOSJSRoutingBundle
 
-Make it work...
-Integrate social sharing.
-Integrate inviting/referring friends.
+Install bundle
+--------------
 
-Configuration
-------------
+Add this to composer.json:
+~~~
+"rodgermd/janrain-bundle": "dev-master"
+~~~
 
-Use FOSUserBundle
-~~~~~~~~~~~~~~~~~
+Enable bundle in AppKernel.php
 
-Fully implement the FOSUserBundle...
+~~~
+new Evario\JanrainBundle\EvarioJanrainBundle()
+~~~
 
-Add EvarioJanrainBundle to your vendor/bundles/ dir
----------------------------------------------
+Configure
+---------
 
-::
+paramters.yml:
+~~~
+  janrain_api_key  : paste_api_key_here
+  janrain_app_id   : paste_app_id_here
+  janrain_app_name : paste_app_name
+~~~
 
-    [EvarioJanrainBundle]
-        git=git://github.com/evario/JanrainBundle.git
-        target=/bundles/Evario/JanrainBundle
+config.yml:
+~~~
+evario_janrain:
+  api_key: %janrain_api_key%
+  request_url: nothing
+~~~
 
-    Then run bin/vendors install
+Add twig global variable:
 
-Add the Evarop namespace to your autoloader
--------------------------------------------
+~~~
+twig:
+    ...
+    globals:
+      ...
+      janrain_application_name: %janrain_app_name%
+~~~
 
-::
+services.yml
+~~~
+services:
+  evario.janrain.user:
+    class: Evario\JanrainBundle\Security\User\Provider  # extend this class as you wish
+    arguments:
+      userManager: "@fos_user.user_manager"
+      validator: "@validator"
+      apiKey: %janrain_api_key%
+      container: "@service_container"
+~~~
 
-    // app/autoload.php
-    $loader->registerNamespaces(array(
-        'Evario' => __DIR__.'/../vendor/bundles',
-        // your other namespaces
-    );
+Change login form in security.yml, that's the sample:
 
-Add JanrainBundle to your application kernel
---------------------------------------------
-
-::
-
-    // app/AppKernel.php
-    public function registerBundles()
-    {
-        return array(
-            new Symfony\Bundle\SecurityBundle\SecurityBundle(),
-            // ...
-            new FOS\UserBundle\FOSUserBundle(),
-            // ...
-            new Evario\JanrainBundle\EvarioJanrainBundle(),
-            // ...
-        );
-    }
-
-Add janrainId string column to user table
------------------------------------------
-
-Add the provider service
-------------------------
-
-::
-
-    services:
-        evario.janrain.user:
-            class: Evario\JanrainBundle\Security\User\Provider\JanrainProvider
-            arguments:
-                userManager: "@fos_user.user_manager"
-                validator: "@validator"
-                apiKey: %evario_janrain.options.api_key%
-                container: "@service_container"
-
-Update your security.yml file to use the new user provider
-----------------------------------------------------------
-
-::
-
-    factories:
-        - "%kernel.root_dir%/../vendor/bundles/Evario/JanrainBundle/Resources/config/security_factories.xml"
-
-    providers:
+~~~
+main:
+    pattern: ^/
+        form_login:
+            provider: evario_janrain
+            csrf_provider: form.csrf_provider
+            login_path: /account/login
+            check_path: /account/login_check
+            use_referer: true
         evario_janrain:
-            id: evario.janrain.user
+            use_forward: false
+            login_path: /account/login
+            check_path: /account/janrain-check
+            provider: evario_janrain
+        logout:
+            path:   /account/logout
+            anonymous: true
+~~~
 
-    firewalls:
-        main:
-            pattern:      .*
-            form_login:
-                provider:       evario_janrain
-                login_path:     /login
-                use_forward:    false
-                check_path:     /login_check
-                failure_path:   null
-            logout:       true
-            anonymous:    true
+Add Janrain controller into routes. Probably change the route prefix
 
-Set the parameters in your config.yml file
-------------------------------------------
+routing.yml
+~~~
+janrain_security:
+  resource: "@EvarioJanrainBundle/Controller"
+  type    : annotation
+  prefix  : /secure
+~~~
 
-::
+Use in templates
+----------------
 
-    # app/config/config.yml
-    evario_janrain:
-        api_key: ~ # your janrain api key
+
+Add javascript anywhere on the page. Janrain recoomends to do that in the <head> tag, but it works even if it will be placed at the bottom of <body>.
+
+~~~
+{% if not app.user %}
+  <script type="text/javascript" src="{{ asset('bundles/evariojanrain/js/janrain_login.js') }}" application_name="{{ janrain_application_name }}"></script>
+{% endif %}
+~~~
+
+Add html element with the class or id written below, that's important.
+If your janrain application is configured to show as a popup, use:
+~~~
+<a class="janrainEngage" href="#">Sign-In</a>
+~~~
+
+if widget:
+
+~~~~
+<div id="janrainEngageEmbed"></div>
+~~~~
