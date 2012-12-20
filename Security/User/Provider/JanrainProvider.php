@@ -77,19 +77,32 @@ class JanrainProvider implements UserProviderInterface
         $user = $this->retrieveUser($profile);
         if ($user) return $user;
 
-        // If we still have not found a user, we need to create a new one.
-        $user = $this->userManager->createUser();
-        $this->createProfile($user, $profile);
-
-        $this->validate($user);
-
-        $this->userManager->updateUser($user);
+        // Run user not found logic
+        $user = $this->userNotFound($profile);
       }
 
       if ($user) return $user;
     }
 
     throw new UsernameNotFoundException('The user is not authenticated.');
+  }
+
+  /**
+   * If user not found by social engine - create a new one based on profile data
+   * @param $profile
+   * @return mixed
+   */
+  protected function userNotFound(array $profile)
+  {
+    // If we still have not found a user, we need to create a new one.
+    $user = $this->userManager->createUser();
+    $this->createProfile($user, $profile);
+
+    $this->validate($user);
+
+    $this->userManager->updateUser($user);
+
+    return $user;
   }
 
   /**
