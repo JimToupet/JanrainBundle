@@ -81,7 +81,7 @@ class JanrainProvider implements UserProviderInterface
         $user = $this->userNotFound($profile);
       }
 
-      if ($user) return $user;
+      if (@$user) return $user;
     }
 
     throw new UsernameNotFoundException('The user is not authenticated.');
