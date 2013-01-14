@@ -12,7 +12,7 @@
     }
   ],
   "require":{
-    "symfony/framework-bundle":"dev-master",
+    "symfony/symfony":"dev-master",
     "friendsofsymfony/user-bundle":"*",
     "friendsofsymfony/jsrouting-bundle":"*"
   },
