@@ -37,7 +37,7 @@ class JanrainProvider implements AuthenticationProviderInterface
         } catch (AuthenticationException $failed) {
             throw $failed;
         } catch (\Exception $failed) {
-            throw new AuthenticationException('Authentication error: ' . $failed->getMessage(), $failed->getMessage(), $failed->getCode(), $failed);
+            throw new AuthenticationException('Authentication error: ' . $failed->getMessage(), $failed->getCode(), $failed);
         }
 
         throw new AuthenticationException('The Social Media user could not be retrieved from the session.');

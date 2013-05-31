@@ -2,6 +2,7 @@
 
 namespace Evario\JanrainBundle\Security\User\Provider;
 
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -17,7 +18,7 @@ class JanrainProvider implements UserProviderInterface
   protected $apiKey;
   protected $container;
 
-  public function __construct($userManager, $validator, $apiKey, $container)
+  public function __construct($userManager, $validator, $apiKey, Container $container)
   {
     $this->userManager = $userManager;
     $this->validator   = $validator;
