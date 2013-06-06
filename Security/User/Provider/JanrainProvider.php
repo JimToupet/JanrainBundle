@@ -13,22 +13,24 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class JanrainProvider implements UserProviderInterface
 {
   protected $userManager;
+  protected $user_provider;
   /** @var \Symfony\Component\Validator\Validator $validator */
   protected $validator;
   protected $apiKey;
   protected $container;
 
-  public function __construct($userManager, $validator, $apiKey, Container $container)
+  public function __construct($userManager, $user_provider, $validator, $apiKey, Container $container)
   {
-    $this->userManager = $userManager;
-    $this->validator   = $validator;
-    $this->apiKey      = $apiKey;
-    $this->container   = $container;
+    $this->userManager   = $userManager;
+    $this->user_provider = $user_provider;
+    $this->validator     = $validator;
+    $this->apiKey        = $apiKey;
+    $this->container     = $container;
   }
 
   public function supportsClass($class)
   {
-    return $this->userManager->supportsClass($class);
+    return $this->user_provider->supportsClass($class);
   }
 
   public function extractJanrainInfo($token)
@@ -51,6 +53,7 @@ class JanrainProvider implements UserProviderInterface
     curl_close($curl);
 
     /* STEP 3: Parse the JSON auth_info response */
+
     return json_decode($raw_json, true);
   }
 
@@ -72,7 +75,7 @@ class JanrainProvider implements UserProviderInterface
       if ($auth_info && $auth_info['stat'] == 'ok') {
 
         /* STEP 3 Continued: Extract the 'identifier' from the response */
-        $profile    = $auth_info['profile'];
+        $profile = $auth_info['profile'];
 
         // Retrieve by profile
         $user = $this->retrieveUser($profile);
@@ -125,8 +128,7 @@ class JanrainProvider implements UserProviderInterface
 
     // use givenName and familyName if provided
     $name = @$profile['name'];
-    if (is_array($name))
-    {
+    if (is_array($name)) {
       if (method_exists($user, 'setFirstName') && array_key_exists('givenName', $name) && $name['givenName']) $user->setFirstName($name['givenName']);
       if (method_exists($user, 'setLastName') && array_key_exists('familyName', $name) && $name['familyName']) $user->setLastName($name['familyName']);
     }
